@@ -14,7 +14,7 @@
 
 ## Supported Versions
 
-- **PySide6:** `6.11.0` (guide verified against this version)
+- **PySide6:** `6.11.1` (guide verified against this version)
 - **Python:** `3.11.x` (preferred) or `3.10.x`
 
 > [!WARNING]
@@ -63,12 +63,12 @@ You’ll save hours of compilation time and avoid a lot of complexity.
 **Direct links for 6.11.0 (Python 3.11):**
 
 - **PySide6**
-  - [aarch64](https://download.qt.io/official_releases/QtForPython/pyside6/pyside6-6.11.0-6.11.0-cp311-cp311-android_aarch64.whl)
-  - [x86_64](https://download.qt.io/official_releases/QtForPython/pyside6/pyside6-6.11.0-6.11.0-cp311-cp311-android_x86_64.whl)
+  - [aarch64](https://download.qt.io/official_releases/QtForPython/pyside6/pyside6-6.11.1-6.11.1-cp311-cp311-android_aarch64.whl)
+  - [x86_64](https://download.qt.io/official_releases/QtForPython/pyside6/pyside6-6.11.1-6.11.1-cp311-cp311-android_x86_64.whl)
 
 - **Shiboken6**
-  - [aarch64](https://download.qt.io/official_releases/QtForPython/shiboken6/shiboken6-6.11.0-6.11.0-cp311-cp311-android_aarch64.whl)
-  - [x86_64](https://download.qt.io/official_releases/QtForPython/shiboken6/shiboken6-6.11.0-6.11.0-cp311-cp311-android_x86_64.whl)
+  - [aarch64](https://download.qt.io/official_releases/QtForPython/shiboken6/shiboken6-6.11.1-6.11.1-cp311-cp311-android_aarch64.whl)
+  - [x86_64](https://download.qt.io/official_releases/QtForPython/shiboken6/shiboken6-6.11.1-6.11.1-cp311-cp311-android_x86_64.whl)
 
 
 If you prefer building your own wheels, see the [Legacy](#legacy-building-the-wheels-yourself) section below.
@@ -94,7 +94,7 @@ sudo pacman -Syu base-devel android-tools android-udev clang jdk17-openjdk llvm 
 cd ~/
 git clone https://code.qt.io/pyside/pyside-setup
 cd pyside-setup
-git checkout 6.11.0   # dev branch can work, but is more error-prone
+git checkout 6.11.1   # dev branch can work, but is more error-prone
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -168,7 +168,7 @@ Now the build will pause so you can edit `buildozer.spec` before it proceeds.
 From your project’s source directory, run:
 
 ```bash
-pyside6-android-deploy   --wheel-pyside=/path/to/PySide6-6.9.3-...-android_<arch>.whl   --wheel-shiboken=/path/to/shiboken6-6.9.3-...-android_<arch>.whl   --name=main   --ndk-path ~/.pyside6_android_deploy/android-ndk/android-ndk-r27c   --sdk-path ~/.pyside6_android_deploy/android-sdk/
+pyside6-android-deploy   --wheel-pyside=/path/to/PySide6-6.11.1-...-android_<arch>.whl   --wheel-shiboken=/path/to/shiboken6-6.9.3-...-android_<arch>.whl   --name=main   --ndk-path ~/.pyside6_android_deploy/android-ndk/android-ndk-r27c   --sdk-path ~/.pyside6_android_deploy/android-sdk/
 ```
 
 **Arguments explained**
@@ -367,14 +367,14 @@ and before `set(QT_COMPILER_FLAGS_RELEASE "-O2 -pipe")`
 But don't clean cache then, because this will obviously override the toolchain. 
 
 #### Other Info
-- To build for **Python 3.10**, edit `main.py` and change `PYTHON_VERSION = 3.11` to `3.10`.
+- To build for **Python 3.10**, edit `main.py` and change `PYTHON_VERSION = 3.11` to `3.10`.b
 - To change the NDK version from `r27c`, edit `tools/cross_compile_android/android_utilities.py`.
 - To speed up CPython cloning, in `main.py` find `if not cpython_dir.exists():` and add `depth=1` to `Repo.clone_from()`.
 
 **Template command:**
 
 ```bash
-python tools/cross_compile_android/main.py --plat-name=<aarch64|armv7a|x86_64|i686> --qt-install-path=/path/to/Qt/6.11.0 --api-level 35 --auto-accept-license --clean-cache all
+python tools/cross_compile_android/main.py --plat-name=<aarch64|armv7a|x86_64|i686> --qt-install-path=/path/to/Qt/6.11.1 --api-level 35 --auto-accept-license --clean-cache all
 ```
 
 Wheels appear under `dist/` when complete. If you hit errors, try:
