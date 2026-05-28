@@ -29,7 +29,7 @@ jobs:
     - name: Install Android SDK Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libffi-dev libssl-dev unzip curl
+        sudo apt-get install -y libffi-dev libssl-dev unzip git
 
     - name: Extract Project Assets
       run: |
@@ -42,19 +42,12 @@ jobs:
           exit 1
         fi
 
-    - name: Download Valid Android Wheels
-      run: |
-        mkdir -p wheels
-        # Uses explicit raw GitHub mirrors to download pristine Android binary wheels cleanly
-        curl -L -o wheels/pyside6_android_aarch64.whl "https://githubusercontent.com"
-        curl -L -o wheels/shiboken6_android_aarch64.whl "https://githubusercontent.com"
-
     - name: Install PySide6 and Deployment Tools
       run: |
         python -m venv venv
         source venv/bin/activate
         python -m pip install --upgrade pip
-        pip install PySide6==6.8.2 shiboken6==6.8.2 jinja2 pkginfo tqdm packaging
+        pip install PySide6 shiboken6 jinja2 pkginfo tqdm packaging
 
     - name: Run Android Build
       run: |
@@ -63,20 +56,7 @@ jobs:
         export ANDROID_HOME=$ANDROID_HOME
         export ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/25.2.9519653
         
-        cat << 'EOF' > pysidedeploy.spec
-        [app]
-        title = Mirai-Ko Hana
-        project_dir = .
-        entrypoint = main.py
-        architecture = arm64-v8a
-
-        [python]
-        version = 3.11.5
-        requirements = PySide6,shiboken6,jinja2,pkginfo,tqdm,packaging
-
-        [android]
-        wheel_pyside = wheels/pyside6_android_aarch64.whl
-        wheel_shiboken = wheels/shiboken6_android_aarch64.whl
-        EOF
-
-        pyside6-android-deploy --config=pysidedeploy.spec --ndk-path=$ANDROID_NDK_ROOT --sdk-path=$ANDROID_HOME
+        pyside6-android-deploy --name="Mirai-Ko Hana" \
+          --entry-point=main.py \
+          --sdk-path=$ANDROID_HOME \
+          --ndk-path=$ANDROID_NDK_ROOT
