@@ -49,15 +49,14 @@ jobs:
         python -m pip install --upgrade pip
         pip install PySide6 shiboken6 jinja2 pkginfo tqdm packaging
         mkdir -p wheels
-        # Direct download of official, verified Android aarch64 binary wheels from Qt servers
-        curl -L -o wheels/shiboken6_android_aarch64.whl https://qt.io || curl -L -o wheels/shiboken6_android_aarch64.whl https://qt.io
-        curl -L -o wheels/pyside6_android_aarch64.whl https://qt.io || curl -L -o wheels/pyside6_android_aarch64.whl https://qt.io
+        # Explicit download of the platform-tagged cross-compilers directly into our layout directory
+        pip download --only-binary=:all: --no-deps --platform android_aarch64 --python-version 3.11 --implementation cp -d ./wheels PySide6 shiboken6 || true
 
     - name: Run Android Build
       run: |
         source venv/bin/activate
-        # Explicitly targets our custom spec configuration profile
-        pyside6-android-deploy --config=pysidedeploy.spec
+        # Explicitly targets our config file and forces architecture matching flags 
+        pyside6-android-deploy --config=pysidedeploy.spec --wheel-pyside=./wheels/PySide6*.whl --wheel-shiboken=./wheels/shiboken6*.whl
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
