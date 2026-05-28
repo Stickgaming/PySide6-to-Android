@@ -47,22 +47,19 @@ jobs:
         python -m venv venv
         source venv/bin/activate
         python -m pip install --upgrade pip
-        # Installs base host packages using flexible versioning matching
         pip install PySide6==6.8.2 shiboken6==6.8.2 jinja2 pkginfo tqdm packaging
         mkdir -p wheels
         
-        # Uses explicit matching tags to grab the authentic 6.8.2-series Android wheels from PyPI
-        pip download --only-binary=:all: --no-deps --platform=android_aarch64 --python-version=3.11 --implementation=cp --abi=cp311 -d ./wheels PySide6 shiboken6
+        # Pulls authentic Android aarch64 binaries directly from the official Qt repository mirror
+        pip download --only-binary=:all: --no-deps -d ./wheels --index-url https://qt.io PySide6_android_aarch64 shiboken6_android_aarch64
 
     - name: Run Android Build
       run: |
         source venv/bin/activate
         
-        # Pull the exact filenames downloaded by pip dynamically to insert them into the spec config
-        PYSIDE_WHEEL=$(ls wheels/PySide6*.whl)
-        SHIBOKEN_WHEEL=$(ls wheels/shiboken6*.whl)
+        PYSIDE_WHEEL=$(ls wheels/PySide6_android_aarch64*.whl)
+        SHIBOKEN_WHEEL=$(ls wheels/shiboken6_android_aarch64*.whl)
         
-        # Generates a fresh spec configuration profile using the authentic, confirmed file paths
         cat << EOF > pysidedeploy.spec
         [app]
         title = Mirai-Ko Hana
@@ -79,5 +76,4 @@ jobs:
         wheel_shiboken = $SHIBOKEN_WHEEL
         EOF
 
-        # Executes the build command targeting our clean layout file
         pyside6-android-deploy --config=pysidedeploy.spec
