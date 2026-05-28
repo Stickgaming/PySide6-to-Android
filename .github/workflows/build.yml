@@ -48,18 +48,12 @@ jobs:
         source venv/bin/activate
         python -m pip install --upgrade pip
         pip install PySide6==6.8.2 shiboken6==6.8.2 jinja2 pkginfo tqdm packaging
-        mkdir -p wheels
-        
-        # Uses the correct, official Qt simple index endpoint for wheels
-        pip download --only-binary=:all: --no-deps -d ./wheels --index-url https://qt.io PySide6 shiboken6
 
     - name: Run Android Build
       run: |
         source venv/bin/activate
         
-        PYSIDE_WHEEL=$(ls wheels/PySide6_android_aarch64*.whl 2>/dev/null || ls wheels/PySide6*.whl)
-        SHIBOKEN_WHEEL=$(ls wheels/shiboken6_android_aarch64*.whl 2>/dev/null || ls wheels/shiboken6*.whl)
-        
+        # Generates a spec file that forces the deploy tool to run its internal bootstrap setup
         cat << EOF > pysidedeploy.spec
         [app]
         title = Mirai-Ko Hana
@@ -72,8 +66,9 @@ jobs:
         requirements = PySide6,shiboken6,jinja2,pkginfo,tqdm,packaging
 
         [android]
-        wheel_pyside = $PYSIDE_WHEEL
-        wheel_shiboken = $SHIBOKEN_WHEEL
+        wheel_pyside = 
+        wheel_shiboken = 
         EOF
 
-        pyside6-android-deploy --config=pysidedeploy.spec
+        # Forces the deployment script to compile code without targeting third-party wheels
+        pyside6-android-deploy --config=pysidedeploy.spec --wheel-pyside="" --wheel-shiboken=""
