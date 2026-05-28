@@ -57,13 +57,10 @@ jobs:
         export ANDROID_HOME=$ANDROID_HOME
         export ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/25.2.9519653
         
-        # 1. Use the secure pip download registry mirror to fetch authentic, uncorrupted binary archives
+        # Download the raw binaries directly using clean, un-redirected file mirrors
         mkdir -p local_wheels
-        pip download --only-binary=:all: --platform android_aarch64 --python-version 3.11 --implementation cp --dest local_wheels --index-url https://pypi.org --extra-index-url https://qt.io PySide6 shiboken6
-        
-        # 2. Extract and match filenames dynamically so the spec reader handles the string variables natively
-        mv local_wheels/PySide6-*android_aarch64*.whl local_wheels/pyside6_target.whl
-        mv local_wheels/shiboken6-*android_aarch64*.whl local_wheels/shiboken6_target.whl
+        curl -f -L -o local_wheels/pyside6_target.whl "https://qt.io"
+        curl -f -L -o local_wheels/shiboken6_target.whl "https://qt.io"
 
         cat << 'EOF' > my_app.spec
         [app]
@@ -84,7 +81,6 @@ jobs:
         EOF
 
         pyside6-android-deploy -c my_app.spec --ndk-path=$ANDROID_NDK_ROOT --sdk-path=$ANDROID_HOME
-
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
