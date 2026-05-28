@@ -1,0 +1,14 @@
+{
+    "app_name": "Mirai-Ko-Girls",
+    "package_name": "com.stickgaming.miraikogirls",
+    "source_dir": ".",
+    "entry_point": "main.py",
+    "permissions": [
+        "INTERNET"
+    ],
+    "requirements": [
+        "PySide6",
+        "shiboken6"
+    ],
+    "architecture": "arm64-v8a"
+}
