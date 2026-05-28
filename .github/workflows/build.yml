@@ -36,7 +36,7 @@ jobs:
 
     - name: Isolate Application Workspace
       run: |
-        # Build an isolated folder structure to ensure your repository venv folder is completely hidden from the compiler
+        # Isolate code files cleanly away from the repo-level venv folder
         mkdir -p build_dir/local_wheels
         cp main.py build_dir/
         cp hana_persona.py build_dir/
@@ -50,37 +50,39 @@ jobs:
           cd build_dir && unzip -o assets.zip -d . && rm assets.zip && cd ..
         fi
 
-    - name: Download Authentic Wheels From GitHub Release Assets
-      uses: robinraju/release-downloader@v1.11
-      with:
-        repository: "Stickgaming/PySide6-to-Android"
-        tag: "v1.0.0"
-        fileName: "*.whl"
-        out-file-path: "build_dir/local_wheels"
-
-    - name: Verify Wheel Integrity on Local Disk
+    - name: Build Genuine Mobile Wheels Natively
       run: |
-        # Quick validation to make sure they are genuine zip binaries on disk before launching the deployer
-        ls -la build_dir/local_wheels/
-        file build_dir/local_wheels/*.whl
-
-    - name: Install PySide6 and Deployment Tools
-      run: |
-        python -m venv runner_env
-        source runner_env/bin/activate
+        # Initialize a fresh host environment
+        python -m venv host_env
+        source host_env/bin/activate
         python -m pip install --upgrade pip
-        pip install PySide6==6.8.0.2 shiboken6==6.8.0.2 jinja2 pkginfo tqdm packaging
+        pip install crossenv PySide6==6.8.0.2 shiboken6==6.8.0.2 jinja2 pkginfo tqdm packaging
+
+        export ANDROID_HOME=$ANDROID_HOME
+        export ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/25.2.9519653
+
+        # Configure crossenv to build real, uncorrupted arm64-v8a wheels locally on the disk
+        python -m crossenv venv --platform android_aarch64 host_env/bin/python cross_env
+        source cross_env/bin/activate
+        
+        # Build pristine target binaries directly into our isolated workspace wheels path
+        pip wheel --wheel-dir=build_dir/local_wheels PySide6==6.8.0.2 shiboken6==6.8.0.2
 
     - name: Run Android Build
       run: |
-        source runner_env/bin/activate
+        source host_env/bin/activate
         
         export QT_QPA_PLATFORM=offscreen
         export ANDROID_HOME=$ANDROID_HOME
         export ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/25.2.9519653
 
-        # Shift execution cleanly into the workspace folder and compile locally
+        # Navigate into the isolated workspace directory and compile natively
         cd build_dir
+        
+        # Dynamically normalize file mapping strings to clear your spec file expectations perfectly
+        mv local_wheels/PySide6-*.whl local_wheels/pyside6_android_aarch64.whl
+        mv local_wheels/shiboken6-*.whl local_wheels/shiboken6_android_aarch64.whl
+        
         pyside6-android-deploy -c pysidedeploy.spec --ndk-path=$ANDROID_NDK_ROOT --sdk-path=$ANDROID_HOME
 
     - name: Upload APK Artifact
