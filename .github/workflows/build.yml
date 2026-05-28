@@ -26,10 +26,12 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Install Android SDK & Build Dependencies
+    - name: Install Android SDK, NDK, & Compile Tools
       run: |
         sudo apt-get update
-        sudo apt-get install -y libffi-dev libssl-dev unzip curl build-essential
+        sudo apt-get install -y libffi-dev libssl-dev unzip curl build-essential git
+        # Install CMake and Ninja required for building PySide6 wheels from source
+        sudo pip install cmake ninja
 
     - name: Setup Android NDK
       uses: android-actions/setup-android@v4
@@ -44,12 +46,31 @@ jobs:
           echo "Warning: assets.zip not found, continuing..."
         fi
 
-    - name: Prepare Python Environment
+    - name: Build Pure Android PySide6 Wheels From Source
       run: |
         python -m venv venv
         source venv/bin/activate
         python -m pip install --upgrade pip
-        pip install PySide6==6.8.0 shiboken6==6.8.0 jinja2 pkginfo tqdm packaging
+        pip install PySide6==6.8.0 shiboken6==6.8.0 jinja2 pkginfo tqdm packaging crossenv
+
+        export ANDROID_HOME=$ANDROID_HOME
+        export ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/25.2.9519653
+
+        # Clone official Qt support tools to build android target wheels cleanly
+        git clone https://qt.io
+        cd pyside-setup/sources/pyside6/tools/android_agent
+        
+        # Build the architecture specific binary wheel packages natively
+        python build_wheels.py --ndk-path=$ANDROID_NDK_ROOT --sdk-path=$ANDROID_HOME --arch=arm64-v8a --version=6.8.0
+        
+        # Relocate the freshly compiled binary packages back into the project space
+        mkdir -p ../../../../../wheels
+        cp dist/*.whl ../../../../../wheels/
+        cd ../../../../../
+        
+        # Normalize file names for the configuration spec parser match
+        mv wheels/PySide6-*android_aarch64*.whl wheels/pyside6_android_aarch64.whl
+        mv wheels/shiboken6-*android_aarch64*.whl wheels/shiboken6_android_aarch64.whl
 
     - name: Run Android Build
       run: |
@@ -69,11 +90,14 @@ jobs:
         version = 3.11
         requirements = PySide6==6.8.0,shiboken6==6.8.0,jinja2,pkginfo,tqdm,packaging
         android_packages = PySide6,shiboken6
+
+        [android]
+        wheel_pyside = wheels/pyside6_android_aarch64.whl
+        wheel_shiboken = wheels/shiboken6_android_aarch64.whl
+        android_packages = PySide6,shiboken6
         EOF
 
-        # Let the official tool automatically download and match the correct required wheels
         pyside6-android-deploy -c my_app.spec --ndk-path=$ANDROID_NDK_ROOT --sdk-path=$ANDROID_HOME
-
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
