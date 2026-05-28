@@ -18,7 +18,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.12'
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -49,15 +49,14 @@ jobs:
         python -m pip install --upgrade pip
         pip install PySide6 shiboken6 jinja2 pkginfo tqdm packaging
         mkdir -p wheels
-        # Downloads exact matching architecture packages to bypass the corrupted naming validator check
-        pip download --only-binary=:all: --no-deps -d ./wheels https://pythonhosted.org
-        pip download --only-binary=:all: --no-deps -d ./wheels https://pythonhosted.org
+        # Explicitly targets Python 3.12 binary platform tags from PyPI
+        pip download --only-binary=:all: --no-deps --platform=android_aarch64 --python-version=3.12 --implementation=cp --abi=cp312 -d ./wheels PySide6 shiboken6
 
     - name: Run Android Build
       run: |
         source venv/bin/activate
-        # Explicit command-line arguments to completely bypass spec file lookups
-        pyside6-android-deploy --name="Mirai-Ko Hana" --wheel-pyside=wheels/pyside6_android_aarch64-6.8.0.1-cp311-abi3-android_aarch64.whl --wheel-shiboken=wheels/shiboken6_android_aarch64-6.8.0.1-cp311-abi3-android_aarch64.whl
+        # Explicitly matches our Python 3.12 architecture wheels to bypass the validator
+        pyside6-android-deploy --name="Mirai-Ko Hana" --wheel-pyside=wheels/PySide6_Android*.whl --wheel-shiboken=wheels/shiboken6_Android*.whl
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
