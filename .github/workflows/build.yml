@@ -1,4 +1,4 @@
-name: Build Android APK
+nname: Build Android APK
 
 on:
   push:
@@ -62,10 +62,8 @@ jobs:
 
     - name: Inject Legacy Binary Placeholder
       run: |
-        # Creates the exact binary verification path expected by the validator
         TARGET_DIR="/usr/local/lib/android/sdk/ndk/25.2.9519653/toolchains/llvm/prebuilt/linux-x86_64/bin"
         sudo mkdir -p "$TARGET_DIR"
-        # Uses the existing llvm-readelf binary to copy over as a valid replacement
         sudo cp "$TARGET_DIR/llvm-readelf" "$TARGET_DIR/llvm-readobj" || sudo touch "$TARGET_DIR/llvm-readobj"
         sudo chmod +x "$TARGET_DIR/llvm-readobj"
 
@@ -86,6 +84,8 @@ jobs:
         [python]
         version = 3.11.5
         requirements = PySide6,shiboken6,jinja2,pkginfo,tqdm,packaging
+        # Added this key to satisfy the split attribute parser validation
+        packages = 
 
         [android]
         wheel_pyside = wheels/pyside6_android_aarch64-6.8.2-cp311-abi3-android_aarch64.whl
