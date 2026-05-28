@@ -34,35 +34,45 @@ jobs:
       with:
         ndk-version: '25.2.9519653'
 
-    - name: Extract Project Assets
+    - name: Isolate Application Workspace
       run: |
+        # Create a clean, isolated directory to completely hide the repository's venv folder from the compiler
+        mkdir build_dir
+        cp main.py build_dir/
+        cp hana_persona.py build_dir/
+        cp hana2_persona.py build_dir/
+        cp mirai_ko_girls.py build_dir/
+        cp mirai_logo.ico build_dir/
+        cp pysidedeploy.spec build_dir/
+        
         if [ -f "assets.zip" ]; then
-          unzip -o assets.zip -d .
-        else
-          echo "Warning: assets.zip not found, continuing..."
+          cp assets.zip build_dir/
+          cd build_dir && unzip -o assets.zip -d . && rm assets.zip && cd ..
         fi
 
     - name: Install PySide6 and Deployment Tools
       run: |
-        python -m venv venv
-        source venv/bin/activate
+        # Use a fresh runner-level environment entirely separate from the repo path
+        python -m venv runner_env
+        source runner_env/bin/activate
         python -m pip install --upgrade pip
         pip install PySide6==6.8.0.2 shiboken6==6.8.0.2 jinja2 pkginfo tqdm packaging
 
     - name: Run Android Build
       run: |
-        source venv/bin/activate
+        source runner_env/bin/activate
         
         export QT_QPA_PLATFORM=offscreen
         export ANDROID_HOME=$ANDROID_HOME
         export ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/25.2.9519653
 
-        # 1. Download pristine binary zip archives directly from the official, un-redirected Qt server mirror
-        mkdir -p local_wheels
-        curl -f -L -o local_wheels/PySide6-6.8.0.2-6.8.0-cp311-cp311-android_aarch64.whl "https://qt.io"
-        curl -f -L -o local_wheels/shiboken6-6.8.0.2-6.8.0-cp311-cp311-android_aarch64.whl "https://qt.io"
+        # Download the pristine official binaries directly to the runner disk
+        mkdir -p build_dir/local_wheels
+        curl -L -o build_dir/local_wheels/PySide6-6.8.0-1-cp311-cp311-android_aarch64.whl "https://github.com"
+        curl -L -o build_dir/local_wheels/shiboken6-6.8.0-1-cp311-cp311-android_aarch64.whl "https://github.com"
 
-        # 2. Compile natively using the verified path mapping configuration file
+        # Change directory into our isolated space and compile safely
+        cd build_dir
         pyside6-android-deploy -c pysidedeploy.spec --ndk-path=$ANDROID_NDK_ROOT --sdk-path=$ANDROID_HOME
 
     - name: Upload APK Artifact
@@ -70,4 +80,4 @@ jobs:
       with:
         name: mirai-ko-hana-app
         path: |
-          **/*.apk
+          build_dir/**/*.apk
