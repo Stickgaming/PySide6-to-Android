@@ -57,30 +57,13 @@ jobs:
         export ANDROID_HOME=$ANDROID_HOME
         export ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/25.2.9519653
         
-        # Download the raw binaries to their absolute pristine file names to satisfy internal platform checks
+        # Download the genuine binary zip archives right into the folder path expected by your spec file
         mkdir -p local_wheels
-        curl -L -o local_wheels/PySide6-6.8.0-6.8.0-cp311-cp311-android_aarch64.whl "https://qt.io"
-        curl -L -o local_wheels/shiboken6-6.8.0-6.8.0-cp311-cp311-android_aarch64.whl "https://qt.io"
+        curl -L -o local_wheels/PySide6-6.8.0-1-cp311-cp311-android_aarch64.whl "https://github.com"
+        curl -L -o local_wheels/shiboken6-6.8.0-1-cp311-cp311-android_aarch64.whl "https://github.com"
 
-        cat << 'EOF' > my_app.spec
-        [app]
-        title = Mirai-Ko Hana
-        project_dir = .
-        entrypoint = main.py
-        architecture = arm64-v8a
-
-        [python]
-        version = 3.11
-        requirements = PySide6,shiboken6,jinja2,pkginfo,tqdm,packaging
-        android_packages = PySide6,shiboken6
-
-        [android]
-        wheel_pyside = local_wheels/PySide6-6.8.0-6.8.0-cp311-cp311-android_aarch64.whl
-        wheel_shiboken = local_wheels/shiboken6-6.8.0-6.8.0-cp311-cp311-android_aarch64.whl
-        android_packages = PySide6,shiboken6
-        EOF
-
-        pyside6-android-deploy -c my_app.spec --ndk-path=$ANDROID_NDK_ROOT --sdk-path=$ANDROID_HOME
+        # Explicitly pass the clean repository configuration file natively
+        pyside6-android-deploy -c pysidedeploy.spec --ndk-path=$ANDROID_NDK_ROOT --sdk-path=$ANDROID_HOME
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
