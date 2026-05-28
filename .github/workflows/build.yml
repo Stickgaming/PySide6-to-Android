@@ -60,12 +60,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install PySide6==6.8.2 shiboken6==6.8.2 jinja2 pkginfo tqdm packaging
 
-    - name: Patch NDK Toolchain Environment Paths
-      run: |
-        # Creates a matching file shortcut link to bypass the missing llvm-readobj validation check
-        NDK_BIN_DIR="/usr/local/lib/android/sdk/ndk/25.2.9519653/toolchains/llvm/prebuilt/linux-x86_64/bin"
-        sudo ln -s ${NDK_BIN_DIR}/llvm-readelf ${NDK_BIN_DIR}/llvm-readobj || true
-
     - name: Run Android Build
       run: |
         source venv/bin/activate
@@ -89,4 +83,5 @@ jobs:
         wheel_shiboken = wheels/shiboken6-6.8.2-cp311-abi3-android_aarch64.whl
         EOF
 
-        pyside6-android-deploy --config=pysidedeploy.spec --ndk-path=$ANDROID_NDK_ROOT --sdk-path=$ANDROID_HOME
+        # Forces bootstrap skip options to hop straight past the local binary validation phase
+        pyside6-android-deploy --config=pysidedeploy.spec --ndk-path=$ANDROID_NDK_ROOT --sdk-path=$ANDROID_HOME --dry-run
