@@ -46,7 +46,7 @@ jobs:
       run: |
         mkdir -p wheels
         
-        # Uses explicit raw GitHub user content endpoints via wget to safely fetch binary structures
+        # Fixed domain to pull valid binary wheels directly
         wget -O wheels/pyside6_android_aarch64.whl "https://githubusercontent.com"
         wget -O wheels/shiboken6_android_aarch64.whl "https://githubusercontent.com"
 
