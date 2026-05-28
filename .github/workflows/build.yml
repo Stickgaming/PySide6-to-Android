@@ -47,8 +47,13 @@ jobs:
     - name: Fetch Authentic Android Wheels
       run: |
         mkdir -p wheels
+        wget -q -O wheels/pyside6_android_aarch64.whl "https://githubusercontent.com" || \
         curl -L -o wheels/pyside6_android_aarch64.whl "https://github.com"
+        
+        wget -q -O wheels/shiboken6_android_aarch64.whl "https://githubusercontent.com" || \
         curl -L -o wheels/shiboken6_android_aarch64.whl "https://github.com"
+
+
 
     - name: Install PySide6 and Deployment Tools
       run: |
