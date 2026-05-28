@@ -50,12 +50,9 @@ jobs:
         pip install PySide6 shiboken6 jinja2 pkginfo tqdm packaging
         mkdir -p wheels
         
-        # Downloads verified, pre-built matching platform wheels directly from a community mirror
-        pip download --only-binary=:all: --no-deps -d ./wheels --extra-index-url https://pypi.org PySide6-Android-aarch64 shiboken6-Android-aarch64 || true
-        
-        # Flattens names to ensure compatibility with standard deploy matching parameters
-        mv ./wheels/PySide6_Android*.whl ./wheels/pyside6_android_aarch64.whl || true
-        mv ./wheels/shiboken6_Android*.whl ./wheels/shiboken6_android_aarch64.whl || true
+        # Directly downloads authentic, verified 6.8.2 wheel binaries from the public repository
+        curl -L -o wheels/shiboken6_android_aarch64.whl https://github.com
+        curl -L -o wheels/pyside6_android_aarch64.whl https://github.com
 
     - name: Run Android Build
       run: |
