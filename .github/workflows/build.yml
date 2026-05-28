@@ -36,8 +36,8 @@ jobs:
 
     - name: Isolate Application Workspace
       run: |
-        # Create a clean, isolated directory to completely hide the repository's venv folder from the compiler
-        mkdir build_dir
+        # Build an isolated folder structure to ensure your repository venv folder is completely hidden from the compiler
+        mkdir -p build_dir/local_wheels
         cp main.py build_dir/
         cp hana_persona.py build_dir/
         cp hana2_persona.py build_dir/
@@ -50,9 +50,22 @@ jobs:
           cd build_dir && unzip -o assets.zip -d . && rm assets.zip && cd ..
         fi
 
+    - name: Download Authentic Wheels From GitHub Release Assets
+      uses: robinraju/release-downloader@v1.11
+      with:
+        repository: "Stickgaming/PySide6-to-Android"
+        tag: "v1.0.0"
+        fileName: "*.whl"
+        out-file-path: "build_dir/local_wheels"
+
+    - name: Verify Wheel Integrity on Local Disk
+      run: |
+        # Quick validation to make sure they are genuine zip binaries on disk before launching the deployer
+        ls -la build_dir/local_wheels/
+        file build_dir/local_wheels/*.whl
+
     - name: Install PySide6 and Deployment Tools
       run: |
-        # Use a fresh runner-level environment entirely separate from the repo path
         python -m venv runner_env
         source runner_env/bin/activate
         python -m pip install --upgrade pip
@@ -66,14 +79,7 @@ jobs:
         export ANDROID_HOME=$ANDROID_HOME
         export ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/25.2.9519653
 
-        # Create the exact folder expected by your spec file
-        mkdir -p build_dir/local_wheels
-
-        # Download the precise 6.8.0.2 filenames that your pysidedeploy.spec is looking for
-        curl -L -o build_dir/local_wheels/PySide6-6.8.0.2-6.8.0-cp311-cp311-android_aarch64.whl "https://qt.io"
-        curl -L -o build_dir/local_wheels/shiboken6-6.8.0.2-6.8.0-cp311-cp311-android_aarch64.whl "https://qt.io"
-
-        # Change directory into the isolated space and compile safely
+        # Shift execution cleanly into the workspace folder and compile locally
         cd build_dir
         pyside6-android-deploy -c pysidedeploy.spec --ndk-path=$ANDROID_NDK_ROOT --sdk-path=$ANDROID_HOME
 
