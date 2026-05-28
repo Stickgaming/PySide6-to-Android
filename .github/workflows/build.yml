@@ -31,12 +31,10 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libffi-dev libssl-dev unzip curl checkinstall build-essential
 
-
-        - name: Setup Android NDK
+    - name: Setup Android NDK
       uses: android-actions/setup-android@v4
       with:
         ndk-version: '25.2.9519653'
-
 
     - name: Extract Project Assets
       run: |
