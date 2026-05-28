@@ -54,7 +54,8 @@ jobs:
     - name: Run Android Build
       run: |
         source venv/bin/activate
-        pyside6-android-deploy
+        # Explicitly targets our custom spec configuration profile
+        pyside6-android-deploy --config=pysidedeploy.spec
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
