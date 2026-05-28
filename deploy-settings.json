@@ -1,8 +1,9 @@
 {
     "app_name": "Mirai-Ko-Girls",
-    "package_name": "com.stickgaming.miraikogirls",
+    "package_name": "com.stick5man.miraikogirls",
     "source_dir": ".",
     "entry_point": "main.py",
+    "icon": "mirai_logo.png",
     "permissions": [
         "INTERNET"
     ],
