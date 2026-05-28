@@ -48,41 +48,10 @@ jobs:
         source venv/bin/activate
         python -m pip install --upgrade pip
         pip install PySide6==6.8.2 shiboken6==6.8.2 jinja2 pkginfo tqdm packaging
-        mkdir -p wheels
-        
-        # Uses Python's native network client to cleanly fetch the uncorrupted Android wheel binaries
-        python -c "
-        import urllib.request
-        print('Fetching PySide6 Android wheel...')
-        urllib.request.urlretrieve('https://github.com', 'wheels/pyside6_android_aarch64.whl')
-        print('Fetching Shiboken6 Android wheel...')
-        urllib.request.urlretrieve('https://github.com', 'wheels/shiboken6_android_aarch64.whl')
-        print('Done!')
-        " 2>/dev/null || python -c "
-        import urllib.request
-        # Robust secondary backup stream directly from verified release nodes
-        urllib.request.urlretrieve('https://github.com', 'wheels/pyside6_android_aarch64.whl')
-        urllib.request.urlretrieve('https://github.com', 'wheels/shiboken6_android_aarch64.whl')
-        "
 
     - name: Run Android Build
       run: |
         source venv/bin/activate
         
-        cat << EOF > pysidedeploy.spec
-        [app]
-        title = Mirai-Ko Hana
-        project_dir = .
-        entrypoint = main.py
-        architecture = arm64-v8a
-
-        [python]
-        version = 3.11.5
-        requirements = PySide6,shiboken6,jinja2,pkginfo,tqdm,packaging
-
-        [android]
-        wheel_pyside = wheels/pyside6_android_aarch64.whl
-        wheel_shiboken = wheels/shiboken6_android_aarch64.whl
-        EOF
-
-        pyside6-android-deploy --config=pysidedeploy.spec
+        # Uses the tool's built-in initializer script to auto-generate standard dependencies
+        pyside6-android-deploy --init --name="Mirai-Ko Hana"
