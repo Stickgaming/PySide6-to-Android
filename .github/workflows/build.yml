@@ -45,7 +45,6 @@ jobs:
     - name: Fetch Real Android Wheels via Python Script
       run: |
         mkdir -p wheels
-        # Uses standard Python streaming blocks to safely bypass connection and firewall blocks completely
         python -c "
         import urllib.request
         headers = {'User-Agent': 'Mozilla/5.0'}
@@ -76,9 +75,16 @@ jobs:
         export ANDROID_HOME=$ANDROID_HOME
         export ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/25.2.9519653
         
+        # Removed the broken entry point flag so it can initialize cleanly
         pyside6-android-deploy --name="Mirai-Ko Hana" \
-          --entry-point=main.py \
           --sdk-path=$ANDROID_HOME \
           --ndk-path=$ANDROID_NDK_ROOT \
           --wheel-pyside=wheels/pyside6_android_aarch64.whl \
           --wheel-shiboken=wheels/shiboken6_android_aarch64.whl
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: mirai-ko-hana-app
+        path: |
+          **/*.apk
