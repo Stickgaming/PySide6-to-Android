@@ -1,0 +1,30 @@
+import json
+from datetime import datetime
+
+class HanaSoul:
+    def __init__(self):
+        self.memory_file = "hana_memory.json"
+        self.data = self.load_memory()
+
+    def load_memory(self):
+        try:
+            with open(self.memory_file, 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            # First time boot settings
+            return {
+                "user_name": "Master",
+                "affection_score": 0,
+                "creation_date": str(datetime.now().date()),
+                "chat_history": []
+            }
+
+    def save_memory(self):
+        with open(self.memory_file, 'w') as f:
+            json.dump(self.data, f, indent=4)
+
+    def get_bonding_level(self):
+        # Logic to check if 14 days have passed
+        start_date = datetime.strptime(self.data["creation_date"], "%Y-%m-%d")
+        days_passed = (datetime.now() - start_date).days
+        return days_passed
