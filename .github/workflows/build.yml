@@ -50,24 +50,12 @@ jobs:
         curl -L -o wheels/pyside6_android_aarch64.whl "https://github.com"
         curl -L -o wheels/shiboken6_android_aarch64.whl "https://github.com"
 
-        - name: Install PySide6 and Deployment Tools
+    - name: Install PySide6 and Deployment Tools
       run: |
         python -m venv venv
         source venv/bin/activate
         python -m pip install --upgrade pip
         pip install PySide6==6.8.0 shiboken6==6.8.0 jinja2 pkginfo tqdm packaging
-
-
-    - name: Inject Legacy Binary Placeholder
-      run: |
-        TARGET_DIR="$ANDROID_HOME/ndk/25.2.9519653/toolchains/llvm/prebuilt/linux-x86_64/bin"
-        sudo mkdir -p "$TARGET_DIR"
-        if [ -f "$TARGET_DIR/llvm-readelf" ]; then
-          sudo cp "$TARGET_DIR/llvm-readelf" "$TARGET_DIR/llvm-readobj"
-        else
-          sudo touch "$TARGET_DIR/llvm-readobj"
-        fi
-        sudo chmod +x "$TARGET_DIR/llvm-readobj"
 
     - name: Run Android Build
       run: |
