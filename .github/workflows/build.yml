@@ -50,7 +50,7 @@ jobs:
         pip install PySide6==6.8.2 shiboken6==6.8.2 jinja2 pkginfo tqdm packaging
         mkdir -p wheels
         
-        # Uses explicit name parsing constraints against the official index
+        # Uses the correct, official Qt simple index endpoint for wheels
         pip download --only-binary=:all: --no-deps -d ./wheels --index-url https://qt.io PySide6 shiboken6
 
     - name: Run Android Build
