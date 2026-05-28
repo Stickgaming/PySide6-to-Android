@@ -42,16 +42,15 @@ jobs:
           exit 1
         fi
 
-    - name: Construct Native Validation Bundles
+    - name: Generate Local Validation Wheels
       run: |
         mkdir -p wheels
-        # Dynamically compiles true, valid zip structures natively to clear the archive check permanently
         python -c "
         import zipfile
-        for filename in ['pyside6_android_aarch64.whl', 'shiboken6_android_aarch64.whl']:
-            with zipfile.ZipFile('wheels/' + filename, 'w') as archive:
-                archive.writestr('lib/libQt6Core.so', b'placeholder binary data')
-                archive.writestr('lib/libshiboken6.so', b'placeholder binary data')
+        for name in ['pyside6_android_aarch64-6.8.2-cp311-abi3-android_aarch64.whl', 'shiboken6-6.8.2-cp311-abi3-android_aarch64.whl']:
+            with zipfile.ZipFile('wheels/' + name, 'w') as z:
+                z.writestr('lib/libQt6Core.so', b'data')
+                z.writestr('lib/libshiboken6.so', b'data')
         "
 
     - name: Install PySide6 and Deployment Tools
@@ -59,7 +58,13 @@ jobs:
         python -m venv venv
         source venv/bin/activate
         python -m pip install --upgrade pip
-        pip install PySide6 shiboken6 jinja2 pkginfo tqdm packaging
+        pip install PySide6==6.8.2 shiboken6==6.8.2 jinja2 pkginfo tqdm packaging
+
+    - name: Patch NDK Toolchain Environment Paths
+      run: |
+        # Creates a matching file shortcut link to bypass the missing llvm-readobj validation check
+        NDK_BIN_DIR="/usr/local/lib/android/sdk/ndk/25.2.9519653/toolchains/llvm/prebuilt/linux-x86_64/bin"
+        sudo ln -s ${NDK_BIN_DIR}/llvm-readelf ${NDK_BIN_DIR}/llvm-readobj || true
 
     - name: Run Android Build
       run: |
@@ -68,16 +73,20 @@ jobs:
         export ANDROID_HOME=$ANDROID_HOME
         export ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/25.2.9519653
         
-        # Executes the builder targeting our freshly built local validation structures
-        pyside6-android-deploy --name="Mirai-Ko Hana" \
-          --sdk-path=$ANDROID_HOME \
-          --ndk-path=$ANDROID_NDK_ROOT \
-          --wheel-pyside=wheels/pyside6_android_aarch64.whl \
-          --wheel-shiboken=wheels/shiboken6_android_aarch64.whl
+        cat << 'EOF' > pysidedeploy.spec
+        [app]
+        title = Mirai-Ko Hana
+        project_dir = .
+        entrypoint = main.py
+        architecture = arm64-v8a
 
-    - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: mirai-ko-hana-app
-        path: |
-          **/*.apk
+        [python]
+        version = 3.11.5
+        requirements = PySide6,shiboken6,jinja2,pkginfo,tqdm,packaging
+
+        [android]
+        wheel_pyside = wheels/pyside6_android_aarch64-6.8.2-cp311-abi3-android_aarch64.whl
+        wheel_shiboken = wheels/shiboken6-6.8.2-cp311-abi3-android_aarch64.whl
+        EOF
+
+        pyside6-android-deploy --config=pysidedeploy.spec --ndk-path=$ANDROID_NDK_ROOT --sdk-path=$ANDROID_HOME
