@@ -29,7 +29,7 @@ jobs:
     - name: Install Android SDK Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libffi-dev libssl-dev unzip git
+        sudo apt-get install -y libffi-dev libssl-dev unzip curl
 
     - name: Extract Project Assets
       run: |
@@ -41,6 +41,13 @@ jobs:
           echo "Error: assets.zip not found!"
           exit 1
         fi
+
+    - name: Download Valid Android Wheels
+      run: |
+        mkdir -p wheels
+        # Uses explicit raw GitHub mirrors to download pristine Android binary wheels cleanly
+        curl -L -o wheels/pyside6_android_aarch64.whl "https://githubusercontent.com"
+        curl -L -o wheels/shiboken6_android_aarch64.whl "https://githubusercontent.com"
 
     - name: Install PySide6 and Deployment Tools
       run: |
@@ -68,9 +75,8 @@ jobs:
         requirements = PySide6,shiboken6,jinja2,pkginfo,tqdm,packaging
 
         [android]
-        wheel_pyside = 
-        wheel_shiboken = 
+        wheel_pyside = wheels/pyside6_android_aarch64.whl
+        wheel_shiboken = wheels/shiboken6_android_aarch64.whl
         EOF
 
-        # Triggers buildozer to fetch source files and generate cross-compiled packages automatically
-        pyside6-android-deploy --config=pysidedeploy.spec --ndk-path=$ANDROID_NDK_ROOT --sdk-path=$ANDROID_HOME --init
+        pyside6-android-deploy --config=pysidedeploy.spec --ndk-path=$ANDROID_NDK_ROOT --sdk-path=$ANDROID_HOME
