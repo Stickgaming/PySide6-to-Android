@@ -1,4 +1,4 @@
-nname: Build Android APK
+name: Build Android APK
 
 on:
   push:
@@ -84,8 +84,7 @@ jobs:
         [python]
         version = 3.11.5
         requirements = PySide6,shiboken6,jinja2,pkginfo,tqdm,packaging
-        # Added this key to satisfy the split attribute parser validation
-        packages = 
+        packages = shiboken6
 
         [android]
         wheel_pyside = wheels/pyside6_android_aarch64-6.8.2-cp311-abi3-android_aarch64.whl
@@ -93,3 +92,10 @@ jobs:
         EOF
 
         pyside6-android-deploy --config=pysidedeploy.spec --ndk-path=$ANDROID_NDK_ROOT --sdk-path=$ANDROID_HOME
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: mirai-ko-hana-app
+        path: |
+          **/*.apk
