@@ -47,11 +47,10 @@ jobs:
         python -m venv venv
         source venv/bin/activate
         python -m pip install --upgrade pip
-        # Pins host tools to a version that matches the available Android binaries
         pip install PySide6==6.8.0.1 shiboken6==6.8.0.1 jinja2 pkginfo tqdm packaging
         mkdir -p wheels
-        # Explicitly downloads matching version 6.8.0.1 cross-compilers directly from PyPI
-        pip download --only-binary=:all: --no-deps --platform=android_aarch64 --python-version=3.11 --implementation=cp --abi=cp311 -d ./wheels PySide6==6.8.0.1 shiboken6==6.8.0.1
+        # Routes pip download directly to the official Qt wheel index to find real Android packages
+        pip download --only-binary=:all: --no-deps -d ./wheels --index-url https://qt.io PySide6 shiboken6
 
     - name: Run Android Build
       run: |
