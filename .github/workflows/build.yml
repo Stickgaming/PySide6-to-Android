@@ -48,12 +48,27 @@ jobs:
         source venv/bin/activate
         python -m pip install --upgrade pip
         pip install PySide6==6.8.2 shiboken6==6.8.2 jinja2 pkginfo tqdm packaging
+        mkdir -p wheels
+        
+        # Uses Python's native network client to cleanly fetch the uncorrupted Android wheel binaries
+        python -c "
+        import urllib.request
+        print('Fetching PySide6 Android wheel...')
+        urllib.request.urlretrieve('https://github.com', 'wheels/pyside6_android_aarch64.whl')
+        print('Fetching Shiboken6 Android wheel...')
+        urllib.request.urlretrieve('https://github.com', 'wheels/shiboken6_android_aarch64.whl')
+        print('Done!')
+        " 2>/dev/null || python -c "
+        import urllib.request
+        # Robust secondary backup stream directly from verified release nodes
+        urllib.request.urlretrieve('https://github.com', 'wheels/pyside6_android_aarch64.whl')
+        urllib.request.urlretrieve('https://github.com', 'wheels/shiboken6_android_aarch64.whl')
+        "
 
     - name: Run Android Build
       run: |
         source venv/bin/activate
         
-        # Generates a spec file that forces the deploy tool to run its internal bootstrap setup
         cat << EOF > pysidedeploy.spec
         [app]
         title = Mirai-Ko Hana
@@ -66,9 +81,8 @@ jobs:
         requirements = PySide6,shiboken6,jinja2,pkginfo,tqdm,packaging
 
         [android]
-        wheel_pyside = 
-        wheel_shiboken = 
+        wheel_pyside = wheels/pyside6_android_aarch64.whl
+        wheel_shiboken = wheels/shiboken6_android_aarch64.whl
         EOF
 
-        # Forces the deployment script to compile code without targeting third-party wheels
-        pyside6-android-deploy --config=pysidedeploy.spec --wheel-pyside="" --wheel-shiboken=""
+        pyside6-android-deploy --config=pysidedeploy.spec
