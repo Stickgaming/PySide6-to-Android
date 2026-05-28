@@ -56,6 +56,6 @@ jobs:
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: mirai-ko-girls-app
+        name: mirai-ko-hana-app
         path: |
           **/*.apk
