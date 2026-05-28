@@ -29,7 +29,7 @@ jobs:
     - name: Install Android SDK Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libffi-dev libssl-dev unzip
+        sudo apt-get install -y libffi-dev libssl-dev unzip wget
 
     - name: Extract Project Assets
       run: |
@@ -45,20 +45,10 @@ jobs:
     - name: Download Authentic Android Wheels
       run: |
         mkdir -p wheels
-        # Pulls verified community binaries through standard proxy delivery streams to ensure valid ZIP files
-        python -c "
-        import urllib.request
-        import json
-        req = urllib.request.Request('https://github.com', headers={'User-Agent': 'Mozilla/5.0'})
-        res = json.loads(urllib.request.urlopen(req).read().decode())
-        for file in res:
-            if file['name'].endswith('.whl'):
-                print(f'Downloading {file['name']}...')
-                urllib.request.urlretrieve(file['download_url'], f'wheels/{file['name']}')
-        "
-        # Renames files cleanly so they pass the rigid platform name validation checks perfectly
-        mv wheels/pyside6_android_aarch64*.whl wheels/pyside6_android_aarch64.whl
-        mv wheels/shiboken6_android_aarch64*.whl wheels/shiboken6_android_aarch64.whl
+        
+        # Uses explicit raw GitHub user content endpoints via wget to safely fetch binary structures
+        wget -O wheels/pyside6_android_aarch64.whl "https://githubusercontent.com"
+        wget -O wheels/shiboken6_android_aarch64.whl "https://githubusercontent.com"
 
     - name: Install PySide6 and Deployment Tools
       run: |
@@ -71,7 +61,7 @@ jobs:
       run: |
         source venv/bin/activate
         
-        cat << EOF > pysidedeploy.spec
+        cat << 'EOF' > pysidedeploy.spec
         [app]
         title = Mirai-Ko Hana
         project_dir = .
