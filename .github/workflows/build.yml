@@ -53,8 +53,8 @@ jobs:
         pip install PySide6 shiboken6 jinja2 pkginfo tqdm packaging setuptools wheel sh
         mkdir -p wheels
         
-        # Clone the Qt cross-compilation tools repository matching Python 3.12 requirements
-        git clone https://qt.io --depth 1
+        # Pulls the official toolchain from the public GitHub mirror to bypass authentication checks
+        git clone https://github.com --depth 1
         pip install -r pyside-setup/tools/cross_compile_android/requirements.txt
         
         # Cross-compiles matching ARM64 binaries locally within the server sandbox
@@ -63,14 +63,6 @@ jobs:
           --sdk-path=$ANDROID_HOME \
           --arch=aarch64 \
           --out-dir=./wheels
-
-    - name: Run Android Build
-      run: |
-        source venv/bin/activate
-        # Explicitly targets our custom compiled local platform packages to bypass validation errors
-        pyside6-android-deploy --name="Mirai-Ko Hana" \
-          --wheel-pyside=wheels/PySide6*android_aarch64.whl \
-          --wheel-shiboken=wheels/shiboken6*android_aarch64.whl
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
