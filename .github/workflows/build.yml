@@ -74,19 +74,23 @@ jobs:
         export ANDROID_HOME=$ANDROID_HOME
         export ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/25.2.9519653
         
-        # Bypasses configuration profile scanning by declaring all requirements as explicit arguments
-        pyside6-android-deploy \
-          --name="Mirai-Ko Hana" \
-          --sdk-path=$ANDROID_HOME \
-          --ndk-path=$ANDROID_NDK_ROOT \
-          --wheel-pyside=wheels/pyside6_android_aarch64.whl \
-          --wheel-shiboken=wheels/shiboken6_android_aarch64.whl \
-          --android-packages="PySide6,shiboken6"
+        # Explicitly write out the exact config format needed to satisfy the internal split requirement
+        cat << 'EOF' > my_app.spec
+        [app]
+        title = Mirai-Ko Hana
+        project_dir = .
+        entrypoint = main.py
+        architecture = arm64-v8a
 
-    - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: mirai-ko-hana-app
-        path: |
-          **/*.apk
+        [python]
+        version = 3.11.5
+        requirements = PySide6,shiboken6,jinja2,pkginfo,tqdm,packaging
 
+        [android]
+        wheel_pyside = wheels/pyside6_android_aarch64.whl
+        wheel_shiboken = wheels/shiboken6_android_aarch64.whl
+        android_packages = PySide6,shiboken6
+        EOF
+
+        # Force the tool to load the config via the accepted -c flag
+        pyside6-android-deploy -c my_app.spec --ndk-path=$ANDROID_NDK_ROOT --sdk-path=$ANDROID_HOME
