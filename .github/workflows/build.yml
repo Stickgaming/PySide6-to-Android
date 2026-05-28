@@ -45,14 +45,13 @@ jobs:
     - name: Install PySide6 and Deployment Tools
       run: |
         python -m pip install --upgrade pip
-        pip install PySide6 shiboken6
-        pip install jinja2 pkginfo tqdm packaging==24.1
-
+        pip install PySide6 shiboken6 jinja2 pkginfo tqdm packaging
+        # Fetches pre-built cross-compiler wheels required by the Android build tool chain
+        pip install --only-binary=:all: --target=./wheels pyside6-android-aarch64 shiboken6-android-aarch64 || true
 
     - name: Run Android Build
       run: |
-        # Adjust this line to match your exact toolchain command if needed
-        pyside6-android-deploy --settings deploy-settings.json
+        pyside6-android-deploy --settings deploy-settings.json --wheel-pyside=./wheels/pyside6_android*.whl --wheel-shiboken=./wheels/shiboken6_android*.whl
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
