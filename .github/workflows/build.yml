@@ -29,7 +29,7 @@ jobs:
     - name: Install Android SDK & Build Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libffi-dev libssl-dev unzip curl checkinstall build-essential
+        sudo apt-get install -y libffi-dev libssl-dev unzip curl build-essential
 
     - name: Setup Android NDK
       uses: android-actions/setup-android@v4
@@ -44,23 +44,21 @@ jobs:
           echo "Warning: assets.zip not found, continuing..."
         fi
 
-    - name: Fetch Authentic Android Wheels
+    - name: Prepare Python Environment & Fetch Android Wheels
       run: |
-        mkdir -p wheels
-        source venv/bin/activate
-        # Force pip to download real binaries via a verified index, bypassing Git LFS text pointers completely
-        pip download --only-binary=:all: --dest wheels --index-url https://pypi.org --extra-index-url https://qt.io PySide6 shiboken6
-        
-        # Rename the downloaded wheels dynamically to match your spec file expectations
-        mv wheels/PySide6-*android_aarch64*.whl wheels/pyside6_android_aarch64.whl
-        mv wheels/shiboken6-*android_aarch64*.whl wheels/shiboken6_android_aarch64.whl
-
-    - name: Install PySide6 and Deployment Tools
-      run: |
+        # 1. Create and initialize the environment safely
         python -m venv venv
         source venv/bin/activate
         python -m pip install --upgrade pip
         pip install PySide6==6.8.0 shiboken6==6.8.0 jinja2 pkginfo tqdm packaging
+
+        # 2. Download genuine, complete binaries using pip instead of raw curl/wget
+        mkdir -p wheels
+        pip download --only-binary=:all: --dest wheels --index-url https://pypi.org --extra-index-url https://qt.io PySide6 shiboken6
+        
+        # 3. Rename downloaded archives safely to clear the configuration parser matches
+        mv wheels/PySide6-*android_aarch64*.whl wheels/pyside6_android_aarch64.whl
+        mv wheels/shiboken6-*android_aarch64*.whl wheels/shiboken6_android_aarch64.whl
 
     - name: Run Android Build
       run: |
@@ -78,7 +76,7 @@ jobs:
 
         [python]
         version = 3.11
-        requirements = PySide6,shiboken6,jinja2,pkginfo,tqdm,packaging
+        requirements = PySide6==6.8.0,shiboken6==6.8.0,jinja2,pkginfo,tqdm,packaging
         android_packages = PySide6,shiboken6
 
         [android]
