@@ -32,13 +32,11 @@ jobs:
         sudo apt-get install -y libffi-dev libssl-dev unzip curl checkinstall build-essential
 
 
-    - name: Install Specific Android NDK
-      run: |
-        mkdir -p $ANDROID_HOME/ndk
-        curl -L -o ndk.zip "https://google.com"
-        unzip -q ndk.zip -d $ANDROID_HOME/ndk
-        mv $ANDROID_HOME/ndk/android-ndk-r25c $ANDROID_HOME/ndk/25.2.9519653
-        rm ndk.zip
+        - name: Setup Android NDK
+      uses: android-actions/setup-android@v4
+      with:
+        ndk-version: '25.2.9519653'
+
 
     - name: Extract Project Assets
       run: |
