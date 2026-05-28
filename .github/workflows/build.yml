@@ -47,19 +47,23 @@ jobs:
         python -m venv venv
         source venv/bin/activate
         python -m pip install --upgrade pip
-        # Installs version-locked deployment packages cleanly
+        # Installs base host packages using flexible versioning matching
         pip install PySide6==6.8.2 shiboken6==6.8.2 jinja2 pkginfo tqdm packaging
         mkdir -p wheels
         
-        # Uses explicit platform parameters to pull matching cross-compilation binaries natively from PyPI simple index mirrors
-        pip download --only-binary=:all: --no-deps --platform=android_aarch64 --python-version=3.11 --implementation=cp --abi=cp311 -d ./wheels PySide6==6.8.2 shiboken6==6.8.2
+        # Uses explicit matching tags to grab the authentic 6.8.2-series Android wheels from PyPI
+        pip download --only-binary=:all: --no-deps --platform=android_aarch64 --python-version=3.11 --implementation=cp --abi=cp311 -d ./wheels PySide6 shiboken6
 
     - name: Run Android Build
       run: |
         source venv/bin/activate
         
-        # Generates a fresh spec configuration profile targeting the authentic wheels downloaded natively by pip
-        cat << 'EOF' > pysidedeploy.spec
+        # Pull the exact filenames downloaded by pip dynamically to insert them into the spec config
+        PYSIDE_WHEEL=$(ls wheels/PySide6*.whl)
+        SHIBOKEN_WHEEL=$(ls wheels/shiboken6*.whl)
+        
+        # Generates a fresh spec configuration profile using the authentic, confirmed file paths
+        cat << EOF > pysidedeploy.spec
         [app]
         title = Mirai-Ko Hana
         project_dir = .
@@ -71,8 +75,8 @@ jobs:
         requirements = PySide6,shiboken6,jinja2,pkginfo,tqdm,packaging
 
         [android]
-        wheel_pyside = wheels/PySide6-6.8.2-cp311-abi3-android_aarch64.whl
-        wheel_shiboken = wheels/shiboken6-6.8.2-cp311-abi3-android_aarch64.whl
+        wheel_pyside = $PYSIDE_WHEEL
+        wheel_shiboken = $SHIBOKEN_WHEEL
         EOF
 
         # Executes the build command targeting our clean layout file
