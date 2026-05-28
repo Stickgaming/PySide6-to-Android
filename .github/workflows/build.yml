@@ -29,7 +29,7 @@ jobs:
     - name: Install Android SDK & NDK Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libffi-dev libssl-dev unzip targetcli-shell git ninja-build cmake
+        sudo apt-get install -y libffi-dev libssl-dev unzip git ninja-build cmake
         # Sets up environment variables pointing to standard Ubuntu GitHub Actions Android SDK paths
         echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
         echo "ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
