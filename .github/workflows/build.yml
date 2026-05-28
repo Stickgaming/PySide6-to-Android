@@ -47,13 +47,13 @@ jobs:
     - name: Fetch Authentic Android Wheels
       run: |
         mkdir -p wheels
-        wget -q -O wheels/pyside6_android_aarch64.whl "https://githubusercontent.com" || \
-        curl -L -o wheels/pyside6_android_aarch64.whl "https://github.com"
+        source venv/bin/activate
+        # Force pip to download real binaries via a verified index, bypassing Git LFS text pointers completely
+        pip download --only-binary=:all: --dest wheels --index-url https://pypi.org --extra-index-url https://qt.io PySide6 shiboken6
         
-        wget -q -O wheels/shiboken6_android_aarch64.whl "https://githubusercontent.com" || \
-        curl -L -o wheels/shiboken6_android_aarch64.whl "https://github.com"
-
-
+        # Rename the downloaded wheels dynamically to match your spec file expectations
+        mv wheels/PySide6-*android_aarch64*.whl wheels/pyside6_android_aarch64.whl
+        mv wheels/shiboken6-*android_aarch64*.whl wheels/shiboken6_android_aarch64.whl
 
     - name: Install PySide6 and Deployment Tools
       run: |
@@ -77,8 +77,8 @@ jobs:
         architecture = arm64-v8a
 
         [python]
-        version = 3.11.5
-        requirements = PySide6==6.8.0,shiboken6==6.8.0,jinja2,pkginfo,tqdm,packaging
+        version = 3.11
+        requirements = PySide6,shiboken6,jinja2,pkginfo,tqdm,packaging
         android_packages = PySide6,shiboken6
 
         [android]
