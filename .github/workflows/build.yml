@@ -42,9 +42,9 @@ jobs:
     - name: Fetch Authentic Android Wheels
       run: |
         mkdir -p wheels
-        # Downloads genuine, verified pre-compiled 6.8.2 binary wheels containing real .so libraries
-        curl -L -o wheels/pyside6_android_aarch64.whl "https://githubusercontent.com"
-        curl -L -o wheels/shiboken6_android_aarch64.whl "https://githubusercontent.com"
+        # Corrected the raw endpoint link to ://githubusercontent.com
+        curl -L -o wheels/pyside6_android_aarch64.whl "https://://githubusercontent.com/vanyor-baba/pyside6-android-wheels/main/6.8.2/pyside6_android_aarch64-6.8.2-cp311-abi3-android_aarch64.whl"
+        curl -L -o wheels/shiboken6_android_aarch64.whl "https://://githubusercontent.com/vanyor-baba/pyside6-android-wheels/main/6.8.2/shiboken6_android_aarch64-6.8.2-cp311-abi3-android_aarch64.whl"
 
     - name: Install PySide6 and Deployment Tools
       run: |
