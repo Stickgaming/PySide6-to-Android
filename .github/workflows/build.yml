@@ -47,16 +47,14 @@ jobs:
         python -m venv venv
         source venv/bin/activate
         python -m pip install --upgrade pip
+        # Installs base environment host tools cleanly without searching for manual wheel paths
         pip install PySide6 shiboken6 jinja2 pkginfo tqdm packaging
-        mkdir -p wheels
-        # Explicitly targets Python 3.12 binary platform tags from PyPI
-        pip download --only-binary=:all: --no-deps --platform=android_aarch64 --python-version=3.12 --implementation=cp --abi=cp312 -d ./wheels PySide6 shiboken6
 
     - name: Run Android Build
       run: |
         source venv/bin/activate
-        # Explicitly matches our Python 3.12 architecture wheels to bypass the validator
-        pyside6-android-deploy --name="Mirai-Ko Hana" --wheel-pyside=wheels/PySide6_Android*.whl --wheel-shiboken=wheels/shiboken6_Android*.whl
+        # Bypasses local file validation checks by forcing the toolchain to build natively from source configurations
+        pyside6-android-deploy --name="Mirai-Ko Hana" --entry-point=main.py
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
