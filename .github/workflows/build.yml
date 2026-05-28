@@ -29,7 +29,7 @@ jobs:
     - name: Install Android SDK & Build Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libffi-dev libssl-dev unzip curl Checkinstall build-essential
+        sudo apt-get install -y libffi-dev libssl-dev unzip curl checkinstall build-essential
 
 
     - name: Install Specific Android NDK
