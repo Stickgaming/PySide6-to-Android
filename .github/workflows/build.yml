@@ -26,13 +26,10 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Install Android SDK & NDK Dependencies
+    - name: Install Android SDK Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libffi-dev libssl-dev unzip git ninja-build cmake
-        # Sets up environment variables pointing to standard Ubuntu GitHub Actions Android SDK paths
-        echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-        echo "ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
+        sudo apt-get install -y libffi-dev libssl-dev unzip
 
     - name: Extract Project Assets
       run: |
@@ -45,24 +42,24 @@ jobs:
           exit 1
         fi
 
-    - name: Compile Native Android PySide6 Wheels
+    - name: Install PySide6 and Download Android Wheels
       run: |
         python -m venv venv
         source venv/bin/activate
         python -m pip install --upgrade pip
-        pip install PySide6 shiboken6 jinja2 pkginfo tqdm packaging setuptools wheel sh
+        pip install PySide6 shiboken6 jinja2 pkginfo tqdm packaging
         mkdir -p wheels
-        
-        # Wrapped in literal quotes to ensure the Linux shell parses the address correctly
-        git clone "https://github.com" --depth 1
-        pip install -r pyside-setup/tools/cross_compile_android/requirements.txt
-        
-        # Cross-compiles matching ARM64 binaries locally within the server sandbox
-        python pyside-setup/tools/cross_compile_android/cross_compile.py \
-          --ndk-path=$ANDROID_HOME/ndk/25.2.9519653 \
-          --sdk-path=$ANDROID_HOME \
-          --arch=aarch64 \
-          --out-dir=./wheels
+        # Pulls the official, pre-compiled Python 3.12 Android cross-compiler wheels directly via curl
+        curl -L -o wheels/shiboken6_android_aarch64.whl https://qt.io
+        curl -L -o wheels/pyside6_android_aarch64.whl https://qt.io
+
+    - name: Run Android Build
+      run: |
+        source venv/bin/activate
+        # Feeds the downloaded official wheels straight to the deploy tool
+        pyside6-android-deploy --name="Mirai-Ko Hana" \
+          --wheel-pyside=wheels/pyside6_android_aarch64.whl \
+          --wheel-shiboken=wheels/shiboken6_android_aarch64.whl
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
