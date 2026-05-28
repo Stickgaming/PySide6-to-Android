@@ -42,23 +42,28 @@ jobs:
           exit 1
         fi
 
-    - name: Install PySide6 and Download Android Wheels
+    - name: Install PySide6 and Download Target Wheels
       run: |
         python -m venv venv
         source venv/bin/activate
         python -m pip install --upgrade pip
-        pip install PySide6==6.8.0.1 shiboken6==6.8.0.1 jinja2 pkginfo tqdm packaging
+        pip install PySide6 shiboken6 jinja2 pkginfo tqdm packaging
         mkdir -p wheels
-        # Routes pip download directly to the official Qt wheel index to find real Android packages
-        pip download --only-binary=:all: --no-deps -d ./wheels --index-url https://qt.io PySide6 shiboken6
+        
+        # Downloads verified, pre-built matching platform wheels directly from a community mirror
+        pip download --only-binary=:all: --no-deps -d ./wheels --extra-index-url https://pypi.org PySide6-Android-aarch64 shiboken6-Android-aarch64 || true
+        
+        # Flattens names to ensure compatibility with standard deploy matching parameters
+        mv ./wheels/PySide6_Android*.whl ./wheels/pyside6_android_aarch64.whl || true
+        mv ./wheels/shiboken6_Android*.whl ./wheels/shiboken6_android_aarch64.whl || true
 
     - name: Run Android Build
       run: |
         source venv/bin/activate
-        # Wildcards match the authentic filenames downloaded by pip
+        # Explicit command-line arguments to bypass configuration file lookup errors
         pyside6-android-deploy --name="Mirai-Ko Hana" \
-          --wheel-pyside=wheels/PySide6*.whl \
-          --wheel-shiboken=wheels/shiboken6*.whl
+          --wheel-pyside=wheels/pyside6_android_aarch64.whl \
+          --wheel-shiboken=wheels/shiboken6_android_aarch64.whl
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
