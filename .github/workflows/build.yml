@@ -42,31 +42,23 @@ jobs:
           exit 1
         fi
 
-    - name: Install PySide6 and Download Android Wheels
+    - name: Install PySide6 and Deployment Tools
       run: |
         python -m venv venv
         source venv/bin/activate
         python -m pip install --upgrade pip
-        pip install PySide6==6.8.2 shiboken6==6.8.2 jinja2 pkginfo tqdm packaging requests
+        # Installs version-locked deployment packages cleanly
+        pip install PySide6==6.8.2 shiboken6==6.8.2 jinja2 pkginfo tqdm packaging
         mkdir -p wheels
         
-        # Uses Python's native requests library to fetch the official Qt wheels reliably, ensuring they aren't corrupted
-        python -c "
-        import requests
-        print('Downloading PySide6 wheel...')
-        r1 = requests.get('https://qt.io')
-        with open('wheels/pyside6_android_aarch64.whl', 'wb') as f: f.write(r1.content)
-        print('Downloading Shiboken6 wheel...')
-        r2 = requests.get('https://qt.io')
-        with open('wheels/shiboken6_android_aarch64.whl', 'wb') as f: f.write(r2.content)
-        print('Downloads complete!')
-        "
+        # Uses explicit platform parameters to pull matching cross-compilation binaries natively from PyPI simple index mirrors
+        pip download --only-binary=:all: --no-deps --platform=android_aarch64 --python-version=3.11 --implementation=cp --abi=cp311 -d ./wheels PySide6==6.8.2 shiboken6==6.8.2
 
     - name: Run Android Build
       run: |
         source venv/bin/activate
         
-        # Generates the required specification config layout file
+        # Generates a fresh spec configuration profile targeting the authentic wheels downloaded natively by pip
         cat << 'EOF' > pysidedeploy.spec
         [app]
         title = Mirai-Ko Hana
@@ -79,9 +71,9 @@ jobs:
         requirements = PySide6,shiboken6,jinja2,pkginfo,tqdm,packaging
 
         [android]
-        wheel_pyside = wheels/pyside6_android_aarch64.whl
-        wheel_shiboken = wheels/shiboken6_android_aarch64.whl
+        wheel_pyside = wheels/PySide6-6.8.2-cp311-abi3-android_aarch64.whl
+        wheel_shiboken = wheels/shiboken6-6.8.2-cp311-abi3-android_aarch64.whl
         EOF
 
-        # Executes the builder directly targeting our manual spec structure
+        # Executes the build command targeting our clean layout file
         pyside6-android-deploy --config=pysidedeploy.spec
