@@ -38,20 +38,23 @@ jobs:
           unzip -o assets.zip -d .
           echo "Extraction complete."
         else
-          echo "Error: assets.zip not found in the root directory!"
+          echo "Error: assets.zip not found!"
           exit 1
         fi
 
     - name: Install PySide6 and Deployment Tools
       run: |
+        python -m venv venv
+        source venv/bin/activate
         python -m pip install --upgrade pip
         pip install PySide6 shiboken6 jinja2 pkginfo tqdm packaging
-        # Fetches pre-built cross-compiler wheels required by the Android build tool chain
-        pip install --only-binary=:all: --target=./wheels pyside6-android-aarch64 shiboken6-android-aarch64 || true
+        mkdir -p wheels
+        pip download --only-binary=:all: --platform=android_aarch64 --python-version=311 --implementation=cp --abi=cp311 -d ./wheels PySide6 shiboken6 || true
 
     - name: Run Android Build
       run: |
-        pyside6-android-deploy --name="Mirai-Ko Hana" --wheel-pyside=./wheels/pyside6_android*.whl --wheel-shiboken=./wheels/shiboken6_android*.whl
+        source venv/bin/activate
+        pyside6-android-deploy
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
