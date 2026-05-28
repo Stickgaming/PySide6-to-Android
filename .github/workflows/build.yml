@@ -53,10 +53,11 @@ jobs:
       run: |
         source venv/bin/activate
         
+        # Force a headless stub environment variable so python bypasses the GTK display system engine checks entirely
+        export QT_QPA_PLATFORM=offscreen
         export ANDROID_HOME=$ANDROID_HOME
         export ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/25.2.9519653
         
-        # 1. Download the uncorrupted binary wheels to local disk so the tool accepts the file strings natively
         mkdir -p local_wheels
         curl -L -o local_wheels/PySide6-6.8.0.2-6.8.0-cp311-cp311-android_aarch64.whl https://qt.io
         curl -L -o local_wheels/shiboken6-6.8.0.2-6.8.0-cp311-cp311-android_aarch64.whl https://qt.io
