@@ -10,6 +10,6 @@ requirements = PySide6,shiboken6,jinja2,pkginfo,tqdm,packaging
 android_packages = PySide6,shiboken6
 
 [android]
-wheel_pyside = https://github.com
-wheel_shiboken = https://github.com
+wheel_pyside = local_wheels/PySide6-6.8.0-1-cp311-cp311-android_aarch64.whl
+wheel_shiboken = local_wheels/shiboken6-6.8.0-1-cp311-cp311-android_aarch64.whl
 android_packages = PySide6,shiboken6
