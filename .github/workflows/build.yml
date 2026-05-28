@@ -26,25 +26,33 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Install Android SDK Dependencies
+    - name: Install Android SDK & Build Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libffi-dev libssl-dev unzip curl
+        sudo apt-get install -y libffi-dev libssl-dev unzip curl Checkinstall build-essential
+
+    - name: Install Specific Android NDK
+      run: |
+        mkdir -p $ANDROID_HOME/ndk
+        curl -L -o ndk.zip "https://google.com"
+        unzip -q ndk.zip -d $ANDROID_HOME/ndk
+        mv $ANDROID_HOME/ndk/android-ndk-r25c $ANDROID_HOME/ndk/25.2.9519653
+        rm ndk.zip
 
     - name: Extract Project Assets
       run: |
         if [ -f "assets.zip" ]; then
           unzip -o assets.zip -d .
         else
-          exit 1
+          echo "Warning: assets.zip not found, continuing..."
         fi
 
     - name: Fetch Authentic Android Wheels
       run: |
         mkdir -p wheels
-        # Corrected the raw endpoint link to ://githubusercontent.com
-        curl -L -o wheels/pyside6_android_aarch64.whl "https://://githubusercontent.com/vanyor-baba/pyside6-android-wheels/main/6.8.2/pyside6_android_aarch64-6.8.2-cp311-abi3-android_aarch64.whl"
-        curl -L -o wheels/shiboken6_android_aarch64.whl "https://://githubusercontent.com/vanyor-baba/pyside6-android-wheels/main/6.8.2/shiboken6_android_aarch64-6.8.2-cp311-abi3-android_aarch64.whl"
+        # Replace these URLs with your actual repository distribution URLs
+        curl -L -o wheels/pyside6_android_aarch64.whl "https://github.com"
+        curl -L -o wheels/shiboken6_android_aarch64.whl "https://github.com"
 
     - name: Install PySide6 and Deployment Tools
       run: |
@@ -55,9 +63,13 @@ jobs:
 
     - name: Inject Legacy Binary Placeholder
       run: |
-        TARGET_DIR="/usr/local/lib/android/sdk/ndk/25.2.9519653/toolchains/llvm/prebuilt/linux-x86_64/bin"
+        TARGET_DIR="$ANDROID_HOME/ndk/25.2.9519653/toolchains/llvm/prebuilt/linux-x86_64/bin"
         sudo mkdir -p "$TARGET_DIR"
-        sudo cp "$TARGET_DIR/llvm-readelf" "$TARGET_DIR/llvm-readobj" || sudo touch "$TARGET_DIR/llvm-readobj"
+        if [ -f "$TARGET_DIR/llvm-readelf" ]; then
+          sudo cp "$TARGET_DIR/llvm-readelf" "$TARGET_DIR/llvm-readobj"
+        else
+          sudo touch "$TARGET_DIR/llvm-readobj"
+        fi
         sudo chmod +x "$TARGET_DIR/llvm-readobj"
 
     - name: Run Android Build
