@@ -42,18 +42,31 @@ jobs:
           exit 1
         fi
 
-    - name: Install PySide6 and Deployment Tools
+    - name: Install PySide6 and Download Android Wheels
       run: |
         python -m venv venv
         source venv/bin/activate
         python -m pip install --upgrade pip
-        pip install PySide6 shiboken6 jinja2 pkginfo tqdm packaging
+        pip install PySide6==6.8.2 shiboken6==6.8.2 jinja2 pkginfo tqdm packaging requests
+        mkdir -p wheels
+        
+        # Uses Python's native requests library to fetch the official Qt wheels reliably, ensuring they aren't corrupted
+        python -c "
+        import requests
+        print('Downloading PySide6 wheel...')
+        r1 = requests.get('https://qt.io')
+        with open('wheels/pyside6_android_aarch64.whl', 'wb') as f: f.write(r1.content)
+        print('Downloading Shiboken6 wheel...')
+        r2 = requests.get('https://qt.io')
+        with open('wheels/shiboken6_android_aarch64.whl', 'wb') as f: f.write(r2.content)
+        print('Downloads complete!')
+        "
 
     - name: Run Android Build
       run: |
         source venv/bin/activate
         
-        # This auto-generates a clean configuration file that the deploy tool requires to read paths natively
+        # Generates the required specification config layout file
         cat << 'EOF' > pysidedeploy.spec
         [app]
         title = Mirai-Ko Hana
@@ -66,9 +79,9 @@ jobs:
         requirements = PySide6,shiboken6,jinja2,pkginfo,tqdm,packaging
 
         [android]
-        wheel_pyside = 
-        wheel_shiboken = 
+        wheel_pyside = wheels/pyside6_android_aarch64.whl
+        wheel_shiboken = wheels/shiboken6_android_aarch64.whl
         EOF
 
-        # Triggers the builder using the fresh spec file configuration profile
+        # Executes the builder directly targeting our manual spec structure
         pyside6-android-deploy --config=pysidedeploy.spec
