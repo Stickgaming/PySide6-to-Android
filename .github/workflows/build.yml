@@ -51,7 +51,7 @@ jobs:
 
     - name: Run Android Build
       run: |
-        pyside6-android-deploy --settings deploy-settings.json --wheel-pyside=./wheels/pyside6_android*.whl --wheel-shiboken=./wheels/shiboken6_android*.whl
+        pyside6-android-deploy --name="Mirai-Ko Hana" --wheel-pyside=./wheels/pyside6_android*.whl --wheel-shiboken=./wheels/shiboken6_android*.whl
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
