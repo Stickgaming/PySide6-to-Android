@@ -44,11 +44,11 @@ jobs:
           echo "Warning: assets.zip not found, continuing..."
         fi
 
-    - name: Fetch Authentic Android Wheels Securely
+    - name: Fetch Authentic Android Wheels from Release
       uses: robinraju/release-downloader@v1.11
       with:
-        repository: "shantanu4c/pyside6-android-demo"
-        tag: "v0.1.0-alpha"
+        repository: "${{ github.repository }}"
+        tag: "v1.0.0"
         fileName: "*.whl"
         out-of-file-path: "wheels"
 
@@ -87,7 +87,6 @@ jobs:
         wheel_pyside = wheels/pyside6_android_aarch64.whl
         wheel_shiboken = wheels/shiboken6_android_aarch64.whl
         android_packages = PySide6,shiboken6
-        EOF
 
         pyside6-android-deploy -c my_app.spec --ndk-path=$ANDROID_NDK_ROOT --sdk-path=$ANDROID_HOME
 
