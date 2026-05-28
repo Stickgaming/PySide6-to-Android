@@ -47,7 +47,7 @@ jobs:
         mkdir -p wheels
         python -c "
         import zipfile
-        for name in ['pyside6_android_aarch64-6.8.2-cp311-abi3-android_aarch64.whl', 'shiboken6-6.8.2-cp311-abi3-android_aarch64.whl']:
+        for name in ['pyside6_android_aarch64.whl', 'shiboken6_android_aarch64.whl']:
             with zipfile.ZipFile('wheels/' + name, 'w') as z:
                 z.writestr('lib/libQt6Core.so', b'data')
                 z.writestr('lib/libshiboken6.so', b'data')
@@ -74,24 +74,14 @@ jobs:
         export ANDROID_HOME=$ANDROID_HOME
         export ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/25.2.9519653
         
-        cat << 'EOF' > pysidedeploy.spec
-        [app]
-        title = Mirai-Ko Hana
-        project_dir = .
-        entrypoint = main.py
-        architecture = arm64-v8a
-
-        [python]
-        version = 3.11.5
-        requirements = PySide6,shiboken6,jinja2,pkginfo,tqdm,packaging
-        packages = shiboken6
-
-        [android]
-        wheel_pyside = wheels/pyside6_android_aarch64-6.8.2-cp311-abi3-android_aarch64.whl
-        wheel_shiboken = wheels/shiboken6-6.8.2-cp311-abi3-android_aarch64.whl
-        EOF
-
-        pyside6-android-deploy --config=pysidedeploy.spec --ndk-path=$ANDROID_NDK_ROOT --sdk-path=$ANDROID_HOME
+        # Bypasses configuration profile scanning by declaring all requirements as explicit arguments
+        pyside6-android-deploy \
+          --name="Mirai-Ko Hana" \
+          --sdk-path=$ANDROID_HOME \
+          --ndk-path=$ANDROID_NDK_ROOT \
+          --wheel-pyside=wheels/pyside6_android_aarch64.whl \
+          --wheel-shiboken=wheels/shiboken6_android_aarch64.whl \
+          --android-packages="PySide6,shiboken6"
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
@@ -99,3 +89,4 @@ jobs:
         name: mirai-ko-hana-app
         path: |
           **/*.apk
+
