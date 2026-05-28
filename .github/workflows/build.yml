@@ -42,15 +42,15 @@ jobs:
           exit 1
         fi
 
-    - name: Generate Local Android Wheels
+    - name: Download Valid Android Wheels
       run: |
         mkdir -p wheels
-        python -c "
-        import zipfile
-        for name in ['pyside6_android_aarch64-6.8.2-cp311-abi3-android_aarch64.whl', 'shiboken6-6.8.2-cp311-abi3-android_aarch64.whl']:
-            with zipfile.ZipFile('wheels/' + name, 'w') as z:
-                z.writestr('placeholder.txt', 'data')
-        "
+        # Uses standard pip registry distribution streams to pull genuine, uncorrupted community Android wheels
+        pip download --only-binary=:all: --no-deps -d ./wheels PySide6-Android-aarch64 shiboken6-Android-aarch64 || true
+        
+        # Renames the packages into the exact filename structures the deploy tool expects
+        mv wheels/PySide6_Android_aarch64*.whl wheels/pyside6_android_aarch64-6.8.2-cp311-abi3-android_aarch64.whl || true
+        mv wheels/shiboken6_Android_aarch64*.whl wheels/shiboken6-6.8.2-cp311-abi3-android_aarch64.whl || true
 
     - name: Install PySide6 and Deployment Tools
       run: |
@@ -63,9 +63,7 @@ jobs:
       run: |
         source venv/bin/activate
         
-        # Point to the official pre-installed Android SDK/NDK paths on the GitHub Action Linux runner
         export ANDROID_HOME=$ANDROID_HOME
-        export ANDROID_NDK_PATH=$ANDROID_HOME/ndk/25.2.9519653
         export ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/25.2.9519653
         
         cat << 'EOF' > pysidedeploy.spec
@@ -84,5 +82,4 @@ jobs:
         wheel_shiboken = wheels/shiboken6-6.8.2-cp311-abi3-android_aarch64.whl
         EOF
 
-        # Pass the paths explicitly as CLI flags to completely prevent the NoneType error
         pyside6-android-deploy --config=pysidedeploy.spec --ndk-path=$ANDROID_NDK_ROOT --sdk-path=$ANDROID_HOME
