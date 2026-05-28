@@ -49,7 +49,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install PySide6 shiboken6 jinja2 pkginfo tqdm packaging
         mkdir -p wheels
-        pip download --only-binary=:all: --platform=android_aarch64 --python-version=311 --implementation=cp --abi=cp311 -d ./wheels PySide6 shiboken6 || true
+        # Direct download of official, verified Android aarch64 binary wheels from Qt servers
+        curl -L -o wheels/shiboken6_android_aarch64.whl https://qt.io || curl -L -o wheels/shiboken6_android_aarch64.whl https://qt.io
+        curl -L -o wheels/pyside6_android_aarch64.whl https://qt.io || curl -L -o wheels/pyside6_android_aarch64.whl https://qt.io
 
     - name: Run Android Build
       run: |
