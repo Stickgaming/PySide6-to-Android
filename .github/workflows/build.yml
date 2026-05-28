@@ -1,0 +1,60 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Install Android SDK Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libffi-dev libssl-dev unzip
+
+    - name: Extract Project Assets
+      run: |
+        if [ -f "assets.zip" ]; then
+          echo "Found assets.zip. Extracting..."
+          unzip -o assets.zip -d .
+          echo "Extraction complete."
+        else
+          echo "Error: assets.zip not found in the root directory!"
+          exit 1
+        fi
+
+    - name: Install PySide6 and Deployment Tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install PySide6 shiboken6
+
+    - name: Run Android Build
+      run: |
+        # Adjust this line to match your exact toolchain command if needed
+        pyside6-android-deploy --settings deploy-settings.json
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: mirai-ko-girls-app
+        path: |
+          **/*.apk
