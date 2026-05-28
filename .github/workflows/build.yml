@@ -49,14 +49,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install PySide6 shiboken6 jinja2 pkginfo tqdm packaging
         mkdir -p wheels
-        # Explicit download of the platform-tagged cross-compilers directly into our layout directory
-        pip download --only-binary=:all: --no-deps --platform android_aarch64 --python-version 3.11 --implementation cp -d ./wheels PySide6 shiboken6 || true
+        # Downloads exact matching architecture packages to bypass the corrupted naming validator check
+        pip download --only-binary=:all: --no-deps -d ./wheels https://pythonhosted.org
+        pip download --only-binary=:all: --no-deps -d ./wheels https://pythonhosted.org
 
     - name: Run Android Build
       run: |
         source venv/bin/activate
-        # Explicitly targets our config file and forces architecture matching flags 
-        pyside6-android-deploy --config=pysidedeploy.spec --wheel-pyside=./wheels/PySide6*.whl --wheel-shiboken=./wheels/shiboken6*.whl
+        # Explicit command-line arguments to completely bypass spec file lookups
+        pyside6-android-deploy --name="Mirai-Ko Hana" --wheel-pyside=wheels/pyside6_android_aarch64-6.8.0.1-cp311-abi3-android_aarch64.whl --wheel-shiboken=wheels/shiboken6_android_aarch64-6.8.0.1-cp311-abi3-android_aarch64.whl
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
