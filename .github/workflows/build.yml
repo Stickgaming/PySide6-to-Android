@@ -46,17 +46,18 @@ jobs:
 
     - name: Prepare Python Environment & Fetch Android Wheels
       run: |
-        # 1. Create and initialize the environment safely
         python -m venv venv
         source venv/bin/activate
         python -m pip install --upgrade pip
         pip install PySide6==6.8.0 shiboken6==6.8.0 jinja2 pkginfo tqdm packaging
 
-        # 2. Download genuine, complete binaries using pip instead of raw curl/wget
         mkdir -p wheels
-        pip download --only-binary=:all: --dest wheels --index-url https://pypi.org --extra-index-url https://qt.io PySide6 shiboken6
+        # Pull the pure binary files directly, bypassing repository indexes and LFS pointer traps entirely
+        curl -L -o wheels/pyside6_android_aarch64.whl "https://nightly.link"
+        unzip -o wheels/wheels.zip -d wheels/
+        rm wheels/wheels.zip
         
-        # 3. Rename downloaded archives safely to clear the configuration parser matches
+        # Rename them cleanly to clear the configuration parser matches
         mv wheels/PySide6-*android_aarch64*.whl wheels/pyside6_android_aarch64.whl
         mv wheels/shiboken6-*android_aarch64*.whl wheels/shiboken6_android_aarch64.whl
 
