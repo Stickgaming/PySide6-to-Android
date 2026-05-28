@@ -53,8 +53,8 @@ jobs:
         pip install PySide6 shiboken6 jinja2 pkginfo tqdm packaging setuptools wheel sh
         mkdir -p wheels
         
-        # Pulls the official toolchain from the public GitHub mirror to bypass authentication checks
-        git clone https://github.com --depth 1
+        # Wrapped in literal quotes to ensure the Linux shell parses the address correctly
+        git clone "https://github.com" --depth 1
         pip install -r pyside-setup/tools/cross_compile_android/requirements.txt
         
         # Cross-compiles matching ARM64 binaries locally within the server sandbox
